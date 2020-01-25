@@ -1,0 +1,21 @@
+{
+  "name": "voxel-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "dat.gui": "^0.7.6",
+    "three": "^0.112.1"
+  },
+  "devDependencies": {
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
+  },
+  "scripts": {
+    "build": "webpack src/main.js",
+    "watch": "webpack src/main.js --watch --mode=development"
+  },
+  "keywords": [],
+  "author": "Josef Wittmann",
+  "license": "ISC"
+}
