@@ -6,19 +6,42 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 export class GameController {
   constructor() {
     this.world = new World();
-    this.player = new Player(0, 2, 10);
+    this.player = new Player(0, 10, 500);
     const canvas = document.querySelector("#c");
     this.controls = new OrbitControls(this.player.camera, canvas);
-    this.controls.addEventListener("change", () => this.updatePlayerPosition());
+    this.controls.addEventListener("change", () =>
+      this.updatePlayerPosition(this.player.camera.position)
+    );
+    this.currentMeshes = this.world.getMeshes(this.player.position);
     this.view = new GameView(
+      this,
       canvas,
       this.player.camera,
-      this.world.getMeshes(this.player.position)
+      this.currentMeshes
     );
   }
 
-  updatePlayerPosition() {
-    this.player.position = this.player.camera.position;
-    this.view.setMeshes(this.world.getMeshes(this.player.position));
+  animate() {
+    this.view.resize();
+    this.view.setCameraPosition(this.player.position);
+    this.updateMeshes();
+    this.view.draw();
+    requestAnimationFrame(() => this.animate());
+  }
+
+  updatePlayerPosition(position) {
+    this.player.position.copy(position);
+  }
+
+  updateMeshes() {
+    const newMeshes = this.world.getMeshes(this.player.position);
+    const meshesToAdd = newMeshes.filter(
+      mesh => !this.currentMeshes.includes(mesh)
+    );
+    const meshesToRemove = this.currentMeshes.filter(
+      mesh => !newMeshes.includes(mesh)
+    );
+    this.currentMeshes = newMeshes;
+    this.view.updateMeshes({ meshesToAdd, meshesToRemove });
   }
 }

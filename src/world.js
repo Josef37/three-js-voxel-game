@@ -4,7 +4,7 @@ import { Chunk } from "./chunk";
 export class World {
   constructor() {
     this.visibilityRange = 1000;
-    this.chunkSize = new Vector3(32, 128, 32);
+    this.chunkSize = new Vector3(64, 128, 64);
     this.chunks = {};
 
     this.chunksInDirection = new Vector3()
@@ -18,10 +18,7 @@ export class World {
    */
   getMeshes(position) {
     const meshes = [];
-    const chunkPosition = position
-      .clone()
-      .divide(this.chunkSize)
-      .floor();
+    const chunkPosition = this.getChunkPosition(position);
     for (
       let chunkX = chunkPosition.x - this.chunksInDirection.x;
       chunkX <= chunkPosition.x + this.chunksInDirection.x;
@@ -32,17 +29,33 @@ export class World {
         chunkZ <= chunkPosition.z + this.chunksInDirection.z;
         chunkZ++
       ) {
-        const chunkId = `${chunkX},0,${chunkZ}`;
-        if (!this.chunks[chunkId]) {
-          this.chunks[chunkId] = new Chunk(this.chunkSize);
+        const currentChunkPosition = new Vector3(chunkX, 0, chunkZ);
+        const currentChunkId = this.getChunkId(currentChunkPosition);
+        if (!this.chunks[currentChunkId]) {
+          this.chunks[currentChunkId] = new Chunk(
+            this.chunkSize,
+            this.getWorldPosition(currentChunkPosition)
+          );
         }
-        const mesh = this.chunks[chunkId].getMesh();
-        mesh.position.copy(
-          new Vector3(chunkX, 0, chunkZ).multiply(this.chunkSize)
-        );
+        const mesh = this.chunks[currentChunkId].getMesh();
         meshes.push(mesh);
       }
     }
     return meshes;
+  }
+
+  getChunkPosition(worldPosition) {
+    return worldPosition
+      .clone()
+      .divide(this.chunkSize)
+      .floor();
+  }
+
+  getWorldPosition(chunkPosition) {
+    return chunkPosition.clone().multiply(this.chunkSize);
+  }
+
+  getChunkId(chunkPosition) {
+    return `${chunkPosition.x},${chunkPosition.y},${chunkPosition.z}`;
   }
 }

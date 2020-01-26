@@ -1,32 +1,31 @@
 import { WebGLRenderer, Scene } from "three";
 import { resizeRendererToDisplaySize, resizeCameraToRenderSize } from "./utils";
 
-const infoBox = document.querySelector("#info");
-
 export class GameView {
-  constructor(canvas, camera, objects) {
+  constructor(controller, canvas, camera, objects) {
+    this.controller = controller;
     this.renderer = new WebGLRenderer({ canvas });
     this.scene = new Scene();
     this.camera = camera;
     this.scene.add(...objects);
-    requestAnimationFrame(() => this.animate());
   }
 
-  // TODO: only remove and add changing meshes
-  setMeshes(meshes) {
-    this.scene.remove(...this.scene.children);
-    this.scene.add(...meshes);
+  updateMeshes({ meshesToAdd, meshesToRemove }) {
+    if (meshesToAdd.length) this.scene.remove(...meshesToRemove);
+    if (meshesToRemove.length) this.scene.add(...meshesToAdd);
   }
 
-  animate() {
+  draw() {
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  resize() {
     if (resizeRendererToDisplaySize(this.renderer)) {
       resizeCameraToRenderSize(this.renderer, this.camera);
     }
+  }
 
-    const { x, y, z } = this.camera.position;
-    infoBox.textContent = `${x}, ${y}, ${z}`;
-
-    this.renderer.render(this.scene, this.camera);
-    requestAnimationFrame(() => this.animate());
+  setCameraPosition(position) {
+    this.camera.position.copy(position);
   }
 }
