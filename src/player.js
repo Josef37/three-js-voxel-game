@@ -30,5 +30,15 @@ export class Player extends Object3D {
     const mouseMovement = this.mouseControls.getDelta();
     this.rotateY(-mouseMovement.x);
     this.camera.rotateX(-mouseMovement.y);
+    this.clampRotationX();
+  }
+
+  clampRotationX() {
+    const cameraRotation = this.camera.rotation.x;
+    if (Math.PI / 2 < cameraRotation) {
+      this.camera.rotation.x = Math.PI / 2;
+    } else if (cameraRotation < -Math.PI / 2) {
+      this.camera.rotation.x = -Math.PI / 2;
+    }
   }
 }
