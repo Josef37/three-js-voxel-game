@@ -6,15 +6,21 @@ const infoBox = document.querySelector("#info");
 
 export class GameController {
   constructor() {
+    const canvas = document.querySelector("#c");
     this.world = new World();
     this.player = new Player(0, 20, 50);
-    const canvas = document.querySelector("#c");
+    this.player.initControls(canvas);
     this.currentMeshes = [];
     this.view = new GameView(canvas, this.player);
+
+    document.addEventListener("click", () => {
+      if (!document.pointerLockElement) canvas.requestPointerLock();
+    });
   }
 
   animate() {
     this.player.updatePosition();
+    this.player.updateRotation();
     this.updateMeshes();
     this.view.resize(this.player.getCamera());
     this.view.draw(this.player.getCamera());

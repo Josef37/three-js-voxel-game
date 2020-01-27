@@ -1,7 +1,8 @@
 import { Vector3, Clock } from "three";
 
-export class Controls {
-  constructor({ speed }) {
+export class KeyControls {
+  constructor(domElement, { speed }) {
+    this.domElement = domElement;
     this.speed = speed;
     this.keyClocks = {
       w: new Clock(false),
@@ -32,7 +33,7 @@ export class Controls {
     });
   }
 
-  getMovementVector() {
+  getDelta() {
     for (const key in this.keyClocks) {
       this.keyDurations[key] += this.keyClocks[key].getDelta();
     }
@@ -41,7 +42,9 @@ export class Controls {
     for (const key in this.keyDurations) {
       const duration = this.keyDurations[key];
       this.keyDurations[key] = 0;
-      const vector = Controls.keyVectors[key].clone().multiplyScalar(duration);
+      const vector = KeyControls.keyVectors[key]
+        .clone()
+        .multiplyScalar(duration);
       movementVector.add(vector);
     }
     return movementVector.multiplyScalar(this.speed);
@@ -63,7 +66,7 @@ export class Controls {
   }
 }
 
-Controls.keyVectors = {
+KeyControls.keyVectors = {
   w: new Vector3(0, 0, -1),
   s: new Vector3(0, 0, 1),
   a: new Vector3(-1, 0, 0),
