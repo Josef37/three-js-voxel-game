@@ -4,7 +4,8 @@ import {
   Geometry,
   Face3,
   MeshBasicMaterial,
-  MeshPhongMaterial
+  MeshPhongMaterial,
+  Box3
 } from "three";
 
 export class Chunk {
@@ -63,8 +64,7 @@ export class Chunk {
         }
       }
     }
-    geometry.computeBoundingBox();
-    geometry.computeVertexNormals();
+    geometry.boundingBox = new Box3(new Vector3(), this.chunkSize);
 
     return geometry;
   }

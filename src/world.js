@@ -3,7 +3,7 @@ import { Chunk } from "./chunk";
 
 export class World {
   constructor() {
-    this.visibilityRange = 50;
+    this.visibilityRange = 100;
     this.chunkSize = new Vector3(16, 32, 16);
     this.chunks = {};
 
