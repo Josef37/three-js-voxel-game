@@ -10,15 +10,14 @@ export class GameController {
     this.player = new Player(0, 20, 50);
     const canvas = document.querySelector("#c");
     this.currentMeshes = [];
-    this.view = new GameView(this, canvas, this.player.camera);
+    this.view = new GameView(canvas, this.player);
   }
 
   animate() {
     this.player.updatePosition();
-    this.view.resize();
-    this.view.setCameraPosition(this.player.position);
     this.updateMeshes();
-    this.view.draw();
+    this.view.resize(this.player.getCamera());
+    this.view.draw(this.player.getCamera());
 
     infoBox.textContent = `${this.player.position.x}, ${this.player.position.y}, ${this.player.position.z}`;
 

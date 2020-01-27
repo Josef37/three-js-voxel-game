@@ -2,20 +2,16 @@ import { WebGLRenderer, Scene, DirectionalLight, Fog } from "three";
 import { resizeRendererToDisplaySize, resizeCameraToRenderSize } from "./utils";
 
 export class GameView {
-  constructor(controller, canvas, camera) {
-    this.controller = controller;
+  constructor(canvas, player) {
     this.renderer = new WebGLRenderer({ canvas });
     this.renderer.shadowMap.enabled = true;
     this.scene = new Scene();
-    this.camera = camera;
+    this.scene.add(player);
 
-    // TODO add to player (make player Object3D)
     const light = new DirectionalLight();
     light.position.set(10, 20, 0);
     light.castShadow = true;
     this.scene.add(light);
-
-    // this.scene.fog = new Fog(0x000000, 1, 100);
   }
 
   updateMeshes({ meshesToAdd, meshesToRemove }) {
@@ -23,17 +19,13 @@ export class GameView {
     if (meshesToAdd.length) this.scene.add(...meshesToAdd);
   }
 
-  draw() {
-    this.renderer.render(this.scene, this.camera);
+  draw(camera) {
+    this.renderer.render(this.scene, camera);
   }
 
-  resize() {
+  resize(camera) {
     if (resizeRendererToDisplaySize(this.renderer)) {
-      resizeCameraToRenderSize(this.renderer, this.camera);
+      resizeCameraToRenderSize(this.renderer, camera);
     }
-  }
-
-  setCameraPosition(position) {
-    this.camera.position.copy(position);
   }
 }
