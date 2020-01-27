@@ -6,19 +6,14 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 export class GameController {
   constructor() {
     this.world = new World();
-    this.player = new Player(0, 10, 500);
+    this.player = new Player(0, 20, 50);
     const canvas = document.querySelector("#c");
     this.controls = new OrbitControls(this.player.camera, canvas);
     this.controls.addEventListener("change", () =>
       this.updatePlayerPosition(this.player.camera.position)
     );
-    this.currentMeshes = this.world.getMeshes(this.player.position);
-    this.view = new GameView(
-      this,
-      canvas,
-      this.player.camera,
-      this.currentMeshes
-    );
+    this.currentMeshes = [];
+    this.view = new GameView(this, canvas, this.player.camera);
   }
 
   animate() {

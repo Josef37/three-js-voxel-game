@@ -3,8 +3,8 @@ import { Chunk } from "./chunk";
 
 export class World {
   constructor() {
-    this.visibilityRange = 1000;
-    this.chunkSize = new Vector3(64, 128, 64);
+    this.visibilityRange = 50;
+    this.chunkSize = new Vector3(16, 32, 16);
     this.chunks = {};
 
     this.chunksInDirection = new Vector3()
@@ -29,6 +29,7 @@ export class World {
         chunkZ <= chunkPosition.z + this.chunksInDirection.z;
         chunkZ++
       ) {
+        // TODO: Iterate y
         const currentChunkPosition = new Vector3(chunkX, 0, chunkZ);
         const currentChunkId = this.getChunkId(currentChunkPosition);
         if (!this.chunks[currentChunkId]) {
