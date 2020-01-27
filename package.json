@@ -1,5 +1,5 @@
 {
-  "name": "voxel-game",
+  "name": "three-js-voxel-game",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -17,5 +17,5 @@
   },
   "keywords": [],
   "author": "Josef Wittmann",
-  "license": "ISC"
+  "license": "MIT"
 }
