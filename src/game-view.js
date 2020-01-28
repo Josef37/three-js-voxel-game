@@ -7,6 +7,7 @@ export class GameView {
     this.renderer.shadowMap.enabled = true;
     this.scene = new Scene();
     this.scene.add(player);
+    this.resize(player.getCamera());
   }
 
   updateMeshes({ meshesToAdd, meshesToRemove }) {

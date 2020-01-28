@@ -15,6 +15,7 @@ export class GameController {
     this.view = new GameView(canvas, this.player);
     this.mouseFocus = new MouseFocus();
     this.initMouseEventHandler(canvas);
+    this.addResizeHandler();
   }
 
   initMouseEventHandler(canvas) {
@@ -34,12 +35,17 @@ export class GameController {
     });
   }
 
+  addResizeHandler() {
+    window.addEventListener("resize", () =>
+      this.view.resize(this.player.getCamera())
+    );
+  }
+
   animate() {
     this.player.updatePosition();
     this.player.updateRotation();
     this.updateMeshes();
     this.mouseFocus.updateFocus(this.player.getCamera(), this.currentMeshes);
-    this.view.resize(this.player.getCamera());
     this.view.draw(this.player.getCamera());
 
     const pos = this.mouseFocus.getNewBlockPosition();
