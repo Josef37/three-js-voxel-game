@@ -12,7 +12,8 @@
     "webpack-cli": "^3.3.10"
   },
   "scripts": {
-    "build": "webpack src/main.js --mode=production && cp src/index.html dist/index.html",
+    "copy-assets": "cp src/index.html dist/index.html && cp -r src/assets dist/",
+    "build": "webpack src/main.js --mode=production",
     "watch": "webpack src/main.js --watch --mode=development"
   },
   "keywords": [],

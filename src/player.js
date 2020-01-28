@@ -11,6 +11,7 @@ export class Player extends Object3D {
     this.add(this.camera);
     this.keyControls;
     this.mouseControls;
+    this.camera.add(MouseControls.loadCursorSprite());
   }
 
   initControls(domElement) {
