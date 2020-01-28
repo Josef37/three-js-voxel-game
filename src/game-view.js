@@ -1,4 +1,4 @@
-import { WebGLRenderer, Scene, DirectionalLight, Fog } from "three";
+import { WebGLRenderer, Scene } from "three";
 import { resizeRendererToDisplaySize, resizeCameraToRenderSize } from "./utils";
 
 export class GameView {
@@ -7,11 +7,6 @@ export class GameView {
     this.renderer.shadowMap.enabled = true;
     this.scene = new Scene();
     this.scene.add(player);
-
-    const light = new DirectionalLight();
-    light.position.set(10, 20, 0);
-    light.castShadow = true;
-    this.scene.add(light);
   }
 
   updateMeshes({ meshesToAdd, meshesToRemove }) {

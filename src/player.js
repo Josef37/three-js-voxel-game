@@ -1,4 +1,4 @@
-import { PerspectiveCamera, Object3D } from "three";
+import { PerspectiveCamera, Object3D, DirectionalLight } from "three";
 import { KeyControls } from "./key-controls";
 import { MouseControls } from "./mouse-controls";
 
@@ -6,12 +6,20 @@ export class Player extends Object3D {
   constructor(x = 0, y = 0, z = 0) {
     super();
     this.position.set(x, y, z);
+    this.rotationHelper = new Object3D();
+    this.add(this.rotationHelper);
     this.camera = new PerspectiveCamera(75, 2, 0.1, 2000);
     this.camera.lookAt(0, -1, -5);
-    this.add(this.camera);
+    this.rotationHelper.add(this.camera);
+
     this.keyControls;
     this.mouseControls;
     this.camera.add(MouseControls.loadCursorSprite());
+
+    this.light = new DirectionalLight();
+    this.light.position.set(0, 30, -10);
+    this.light.target = this;
+    this.add(this.light);
   }
 
   initControls(domElement) {
@@ -24,12 +32,15 @@ export class Player extends Object3D {
   }
 
   updatePosition() {
-    this.translateOnAxis(this.keyControls.getDelta(), 1);
+    this.translateOnAxis(
+      this.keyControls.getDelta().applyMatrix4(this.rotationHelper.matrix),
+      1
+    );
   }
 
   updateRotation() {
     const mouseMovement = this.mouseControls.getDelta();
-    this.rotateY(-mouseMovement.x);
+    this.rotationHelper.rotateY(-mouseMovement.x);
     this.camera.rotateX(-mouseMovement.y);
     this.clampRotationX();
   }
