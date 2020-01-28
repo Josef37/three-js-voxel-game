@@ -14,6 +14,22 @@ export class World {
   }
 
   /**
+   * @param {Vector3} worldPosition
+   */
+  placeBlock(worldPosition) {
+    const chunk = this.getChunk(worldPosition);
+    chunk.placeBlock(worldPosition);
+  }
+
+  /**
+   * @param {Vector3} worldPosition
+   */
+  removeBlock(worldPosition) {
+    const chunk = this.getChunk(worldPosition);
+    chunk.removeBlock(worldPosition);
+  }
+
+  /**
    * @param {Vector3} position
    */
   getMeshes(position) {
@@ -58,5 +74,17 @@ export class World {
 
   getChunkId(chunkPosition) {
     return `${chunkPosition.x},${chunkPosition.y},${chunkPosition.z}`;
+  }
+
+  getChunk(worldPosition) {
+    const chunkPosition = this.getChunkPosition(worldPosition);
+    const chunkId = this.getChunkId(chunkPosition);
+    if (!this.chunks[chunkId]) {
+      this.chunks[chunkId] = new Chunk(
+        this.chunkSize,
+        this.getWorldPosition(chunkPosition)
+      );
+    }
+    return this.chunks[chunkId];
   }
 }

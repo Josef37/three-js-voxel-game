@@ -1,12 +1,4 @@
-import {
-  Mesh,
-  Vector3,
-  Geometry,
-  Face3,
-  MeshBasicMaterial,
-  MeshPhongMaterial,
-  Box3
-} from "three";
+import { Mesh, Vector3, Geometry, Face3, MeshPhongMaterial, Box3 } from "three";
 
 export class Chunk {
   constructor(chunkSize, worldPosition) {
@@ -16,6 +8,34 @@ export class Chunk {
     this.geometry = null;
     this.material = new MeshPhongMaterial({ color: "green" });
     this.mesh = null;
+    this.computeMesh();
+  }
+
+  /**
+   * @param {Vector3} worldPosition
+   */
+  placeBlock(worldPosition) {
+    this.updateBlock(worldPosition, 1);
+  }
+
+  /**
+   * @param {Vector3} worldPosition
+   */
+  removeBlock(worldPosition) {
+    this.updateBlock(worldPosition, 0);
+  }
+
+  /**
+   * @param {Vector3} worldPosition
+   * @param {number} blockType the code for a block type
+   */
+  updateBlock(worldPosition, blockType) {
+    const chunkPosition = worldPosition.clone().sub(this.worldPosition);
+    const { x, y, z } = chunkPosition;
+    this.blocks[x][y][z] = blockType;
+    // Reset Mesh and Geometry to force recalculation on next render
+    this.geometry = null;
+    this.mesh = null;
   }
 
   getMesh() {
@@ -24,7 +44,7 @@ export class Chunk {
   }
 
   computeMesh() {
-    const geometry = this.computeGeometry();
+    const geometry = this.getGeometry();
 
     this.mesh = new Mesh(geometry, this.material);
     this.mesh.castShadow = true;
@@ -32,41 +52,45 @@ export class Chunk {
     this.mesh.position.copy(this.worldPosition);
   }
 
+  getGeometry() {
+    if (!this.geometry) this.computeGeometry();
+    return this.geometry;
+  }
+
   computeGeometry() {
     // TODO: Make BufferGeometry (merge PlaneBufferGeo with BufferGeoUtils)
-    this.computeBlocks();
+    const blocks = this.getBlocks();
 
-    const geometry = new Geometry();
+    this.geometry = new Geometry();
     for (let x = 0; x < this.chunkSize.x; x++) {
       for (let y = 0; y < this.chunkSize.y; y++) {
         for (let z = 0; z < this.chunkSize.z; z++) {
-          if (this.blocks[x][y][z] === 0) continue;
+          if (blocks[x][y][z] === 0) continue;
           for (const { normal, vertices, facesVertices } of Chunk.directions) {
             const neighbor = new Vector3(x, y, z).add(normal);
             const { x: nX, y: nY, z: nZ } = neighbor;
-            if (
-              !this.isOutsideOfChunk(neighbor) &&
-              this.blocks[nX][nY][nZ] !== 0
-            ) {
+            if (!this.isOutsideOfChunk(neighbor) && blocks[nX][nY][nZ] !== 0) {
               continue;
             }
-
-            const vertexIndex = geometry.vertices.length;
-            geometry.vertices.push(
+            const vertexIndex = this.geometry.vertices.length;
+            this.geometry.vertices.push(
               ...vertices.map(vertex => new Vector3(x, y, z).add(vertex))
             );
             const faces = facesVertices.map(vertices => {
               const indices = vertices.map(index => index + vertexIndex);
               return new Face3(...indices, normal);
             });
-            geometry.faces.push(...faces);
+            this.geometry.faces.push(...faces);
           }
         }
       }
     }
-    geometry.boundingBox = new Box3(new Vector3(), this.chunkSize);
+    this.geometry.boundingBox = new Box3(new Vector3(0, 0, 0), this.chunkSize);
+  }
 
-    return geometry;
+  getBlocks() {
+    if (!this.blocks) this.computeBlocks();
+    return this.blocks;
   }
 
   computeBlocks() {
