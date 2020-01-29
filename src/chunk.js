@@ -15,7 +15,6 @@ export class Chunk {
     this.geometry = null;
     this.material = new MeshPhongMaterial({ color: "green" });
     this.mesh = null;
-    this.computeMesh();
   }
 
   /**
@@ -43,11 +42,16 @@ export class Chunk {
     // Reset Mesh and Geometry to force recalculation on next render
     this.geometry = null;
     this.mesh = null;
+    this.computeMesh();
   }
 
   getMesh() {
-    if (!this.mesh) this.computeMesh();
+    if (!this.hasMesh()) this.computeMesh();
     return this.mesh;
+  }
+
+  hasMesh() {
+    return !!this.mesh;
   }
 
   computeMesh() {
