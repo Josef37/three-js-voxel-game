@@ -13,7 +13,10 @@ export class Chunk {
     this.worldPosition = worldPosition;
     this.blocks = null;
     this.geometry = null;
-    this.material = new MeshPhongMaterial({ color: "green" });
+    this.material = new MeshPhongMaterial({
+      color: "green",
+      emissive: 0x003000
+    });
     this.mesh = null;
   }
 

@@ -17,13 +17,13 @@ export class Player extends Object3D {
     this.camera.add(MouseControls.loadCursorSprite());
 
     this.light = new DirectionalLight();
-    this.light.position.set(0, 30, -10);
+    this.light.position.set(-10, 30, -15);
     this.light.target = this;
     this.add(this.light);
   }
 
   initControls(domElement) {
-    this.keyControls = new KeyControls(domElement, { speed: 50 });
+    this.keyControls = new KeyControls(domElement, { speed: 20 });
     this.mouseControls = new MouseControls(domElement, { sensitivity: 0.01 });
   }
 
