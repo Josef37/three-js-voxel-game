@@ -22,3 +22,9 @@ export function resizeCameraToRenderSize(renderer, camera) {
   camera.aspect = canvas.clientWidth / canvas.clientHeight;
   camera.updateProjectionMatrix();
 }
+
+export function fastSin(x) {
+  const doublePi = 2 * Math.PI;
+  x = (((x % doublePi) + doublePi) % doublePi) - Math.PI;
+  return (4 * x) / Math.PI - (4 * x * Math.abs(x)) / Math.PI ** 2;
+}
