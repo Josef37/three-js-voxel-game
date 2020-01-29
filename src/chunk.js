@@ -1,11 +1,10 @@
 import {
   Mesh,
   Vector3,
-  Geometry,
-  Face3,
   MeshPhongMaterial,
   Box3,
-  PlaneBufferGeometry
+  BufferGeometry,
+  BufferAttribute
 } from "three";
 
 export class Chunk {
@@ -66,35 +65,67 @@ export class Chunk {
   }
 
   computeGeometry() {
-    // TODO: Make BufferGeometry (merge PlaneBufferGeo with BufferGeoUtils)
     const blocks = this.getBlocks();
 
-    this.geometry = new Geometry();
+    const allVertices = [];
+    const allNormals = [];
+    const allUvs = [];
+    const allIndices = [];
+
     for (let x = 0; x < this.chunkSize.x; x++) {
       for (let y = 0; y < this.chunkSize.y; y++) {
         for (let z = 0; z < this.chunkSize.z; z++) {
           if (blocks[x][y][z] === 0) continue;
-          for (const { normal, vertices, facesVertices } of Chunk.directions) {
+          for (const {
+            normal,
+            vertices,
+            normals,
+            uvs,
+            indices
+          } of Chunk.directions) {
             const neighbor = new Vector3(x, y, z).add(normal);
             const { x: nX, y: nY, z: nZ } = neighbor;
             if (!this.isOutsideOfChunk(neighbor) && blocks[nX][nY][nZ] !== 0) {
               continue;
             }
 
-            const vertexIndex = this.geometry.vertices.length;
-            this.geometry.vertices.push(
-              ...vertices.map(vertex => new Vector3(x, y, z).add(vertex))
+            const firstIndex = allVertices.length / 3;
+            allVertices.push(
+              ...vertices.map((v, i) => {
+                switch (i % 3) {
+                  case 0:
+                    return v + x;
+                  case 1:
+                    return v + y;
+                  case 2:
+                    return v + z;
+                }
+              })
             );
-            const faces = facesVertices.map(vertices => {
-              const indices = vertices.map(index => index + vertexIndex);
-              return new Face3(...indices, normal);
-            });
-            this.geometry.faces.push(...faces);
+            allNormals.push(...normals);
+            allUvs.push(...uvs);
+            allIndices.push(...indices.map(i => i + firstIndex));
           }
         }
       }
     }
-    this.geometry.boundingBox = new Box3(new Vector3(0, 0, 0), this.chunkSize);
+    const geometry = new BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new BufferAttribute(new Float32Array(allVertices), 3)
+    );
+    geometry.setAttribute(
+      "normal",
+      new BufferAttribute(new Float32Array(allNormals), 3)
+    );
+    geometry.setAttribute(
+      "uv",
+      new BufferAttribute(new Float32Array(allUvs), 2)
+    );
+    geometry.setIndex(allIndices);
+    geometry.boundingBox = new Box3(new Vector3(0, 0, 0), this.chunkSize);
+
+    this.geometry = geometry;
   }
 
   getBlocks() {
@@ -141,80 +172,44 @@ export class Chunk {
 Chunk.directions = [
   {
     normal: new Vector3(1, 0, 0),
-    vertices: [
-      new Vector3(1, 0, 0),
-      new Vector3(1, 1, 0),
-      new Vector3(1, 0, 1),
-      new Vector3(1, 1, 1)
-    ],
-    facesVertices: [
-      [0, 1, 3],
-      [0, 3, 2]
-    ]
+    vertices: [1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1],
+    normals: [...Array(4)].flatMap(() => [1, 0, 0]),
+    uvs: [0, 0, 0, 1, 1, 0, 1, 1],
+    indices: [0, 1, 3, 0, 3, 2]
   },
   {
     normal: new Vector3(-1, 0, 0),
-    vertices: [
-      new Vector3(0, 0, 0),
-      new Vector3(0, 0, 1),
-      new Vector3(0, 1, 0),
-      new Vector3(0, 1, 1)
-    ],
-    facesVertices: [
-      [0, 1, 3],
-      [0, 3, 2]
-    ]
+    vertices: [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1],
+    normals: [...Array(4)].flatMap(() => [-1, 0, 0]),
+    uvs: [0, 0, 0, 1, 1, 0, 1, 1],
+    indices: [0, 1, 3, 0, 3, 2]
   },
   {
     normal: new Vector3(0, 1, 0),
-    vertices: [
-      new Vector3(0, 1, 0),
-      new Vector3(0, 1, 1),
-      new Vector3(1, 1, 0),
-      new Vector3(1, 1, 1)
-    ],
-    facesVertices: [
-      [0, 1, 3],
-      [0, 3, 2]
-    ]
+    vertices: [0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1],
+    normals: [...Array(4)].flatMap(() => [0, 1, 0]),
+    uvs: [0, 0, 0, 1, 1, 0, 1, 1],
+    indices: [0, 1, 3, 0, 3, 2]
   },
   {
     normal: new Vector3(0, -1, 0),
-    vertices: [
-      new Vector3(0, 0, 0),
-      new Vector3(1, 0, 0),
-      new Vector3(0, 0, 1),
-      new Vector3(1, 0, 1)
-    ],
-    facesVertices: [
-      [0, 1, 3],
-      [0, 3, 2]
-    ]
+    vertices: [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1],
+    normals: [...Array(4)].flatMap(() => [0, -1, 0]),
+    uvs: [0, 0, 0, 1, 1, 0, 1, 1],
+    indices: [0, 1, 3, 0, 3, 2]
   },
   {
     normal: new Vector3(0, 0, 1),
-    vertices: [
-      new Vector3(0, 0, 1),
-      new Vector3(1, 0, 1),
-      new Vector3(0, 1, 1),
-      new Vector3(1, 1, 1)
-    ],
-    facesVertices: [
-      [0, 1, 3],
-      [0, 3, 2]
-    ]
+    vertices: [0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1],
+    normals: [...Array(4)].flatMap(() => [0, 0, 1]),
+    uvs: [0, 0, 0, 1, 1, 0, 1, 1],
+    indices: [0, 1, 3, 0, 3, 2]
   },
   {
     normal: new Vector3(0, 0, -1),
-    vertices: [
-      new Vector3(0, 0, 0),
-      new Vector3(0, 1, 0),
-      new Vector3(1, 0, 0),
-      new Vector3(1, 1, 0)
-    ],
-    facesVertices: [
-      [0, 1, 3],
-      [0, 3, 2]
-    ]
+    vertices: [0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0],
+    normals: [...Array(4)].flatMap(() => [0, 0, -1]),
+    uvs: [0, 0, 0, 1, 1, 0, 1, 1],
+    indices: [0, 1, 3, 0, 3, 2]
   }
 ];
