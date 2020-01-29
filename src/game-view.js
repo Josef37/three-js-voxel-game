@@ -4,7 +4,6 @@ import { resizeRendererToDisplaySize, resizeCameraToRenderSize } from "./utils";
 export class GameView {
   constructor(canvas, player) {
     this.renderer = new WebGLRenderer({ canvas });
-    this.renderer.shadowMap.enabled = true;
     this.scene = new Scene();
     this.scene.add(player);
     this.resize(player.getCamera());

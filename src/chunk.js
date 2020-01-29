@@ -61,8 +61,6 @@ export class Chunk {
     const geometry = this.getGeometry();
 
     this.mesh = new Mesh(geometry, this.material);
-    this.mesh.castShadow = true;
-    this.mesh.receiveShadow = true;
     this.mesh.position.copy(this.worldPosition);
   }
 
