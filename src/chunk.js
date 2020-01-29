@@ -1,4 +1,12 @@
-import { Mesh, Vector3, Geometry, Face3, MeshPhongMaterial, Box3 } from "three";
+import {
+  Mesh,
+  Vector3,
+  Geometry,
+  Face3,
+  MeshPhongMaterial,
+  Box3,
+  PlaneBufferGeometry
+} from "three";
 
 export class Chunk {
   constructor(chunkSize, worldPosition) {
@@ -72,6 +80,7 @@ export class Chunk {
             if (!this.isOutsideOfChunk(neighbor) && blocks[nX][nY][nZ] !== 0) {
               continue;
             }
+
             const vertexIndex = this.geometry.vertices.length;
             this.geometry.vertices.push(
               ...vertices.map(vertex => new Vector3(x, y, z).add(vertex))
@@ -147,26 +156,26 @@ Chunk.directions = [
     normal: new Vector3(-1, 0, 0),
     vertices: [
       new Vector3(0, 0, 0),
-      new Vector3(0, 1, 0),
       new Vector3(0, 0, 1),
+      new Vector3(0, 1, 0),
       new Vector3(0, 1, 1)
     ],
     facesVertices: [
-      [0, 2, 3],
-      [0, 3, 1]
+      [0, 1, 3],
+      [0, 3, 2]
     ]
   },
   {
     normal: new Vector3(0, 1, 0),
     vertices: [
       new Vector3(0, 1, 0),
-      new Vector3(1, 1, 0),
       new Vector3(0, 1, 1),
+      new Vector3(1, 1, 0),
       new Vector3(1, 1, 1)
     ],
     facesVertices: [
-      [0, 2, 3],
-      [0, 3, 1]
+      [0, 1, 3],
+      [0, 3, 2]
     ]
   },
   {
@@ -199,13 +208,13 @@ Chunk.directions = [
     normal: new Vector3(0, 0, -1),
     vertices: [
       new Vector3(0, 0, 0),
-      new Vector3(1, 0, 0),
       new Vector3(0, 1, 0),
+      new Vector3(1, 0, 0),
       new Vector3(1, 1, 0)
     ],
     facesVertices: [
-      [0, 2, 3],
-      [0, 3, 1]
+      [0, 1, 3],
+      [0, 3, 2]
     ]
   }
 ];
