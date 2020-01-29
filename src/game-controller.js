@@ -61,14 +61,14 @@ export class GameController {
   }
 
   updateMeshes() {
-    const newMeshes = this.world.getMeshes(this.player.position);
-    const meshesToAdd = newMeshes.filter(
+    const availableMeshes = this.world.getAvailableMeshes(this.player.position);
+    const meshesToAdd = availableMeshes.filter(
       mesh => !this.currentMeshes.includes(mesh)
     );
     const meshesToRemove = this.currentMeshes.filter(
-      mesh => !newMeshes.includes(mesh)
+      mesh => !availableMeshes.includes(mesh)
     );
-    this.currentMeshes = newMeshes;
+    this.currentMeshes = availableMeshes;
     this.view.updateMeshes({ meshesToAdd, meshesToRemove });
   }
 
