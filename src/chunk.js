@@ -39,7 +39,7 @@ export class Chunk {
   updateBlock(worldPosition, blockType) {
     const chunkPosition = worldPosition.clone().sub(this.worldPosition);
     const { x, y, z } = chunkPosition;
-    this.blocks[x][y][z] = blockType;
+    this.setBlock(blockType, x, y, z);
     // Reset Mesh and Geometry to force recalculation on next render
     this.geometry = null;
     this.mesh = null;
@@ -72,10 +72,11 @@ export class Chunk {
     const allUvs = [];
     const allIndices = [];
 
-    for (let x = 0; x < this.chunkSize.x; x++) {
+    let index = 0;
+    for (let z = 0; z < this.chunkSize.z; z++) {
       for (let y = 0; y < this.chunkSize.y; y++) {
-        for (let z = 0; z < this.chunkSize.z; z++) {
-          if (blocks[x][y][z] === 0) continue;
+        for (let x = 0; x < this.chunkSize.x; x++) {
+          if (blocks[index++] === 0) continue;
           for (const {
             normal,
             vertices,
@@ -85,7 +86,10 @@ export class Chunk {
           } of Chunk.directions) {
             const neighbor = new Vector3(x, y, z).add(normal);
             const { x: nX, y: nY, z: nZ } = neighbor;
-            if (!this.isOutsideOfChunk(neighbor) && blocks[nX][nY][nZ] !== 0) {
+            if (
+              !this.isOutsideOfChunk(neighbor) &&
+              this.getBlock(nX, nY, nZ) !== 0
+            ) {
               continue;
             }
 
@@ -134,18 +138,32 @@ export class Chunk {
   }
 
   computeBlocks() {
-    this.blocks = [];
-    for (let x = 0; x < this.chunkSize.x; x++) {
-      this.blocks[x] = [];
+    const length = this.chunkSize.x * this.chunkSize.y * this.chunkSize.z;
+    this.blocks = new Uint8Array(length);
+    let index = 0;
+    for (let z = 0; z < this.chunkSize.z; z++) {
       for (let y = 0; y < this.chunkSize.y; y++) {
-        this.blocks[x][y] = [];
-        for (let z = 0; z < this.chunkSize.z; z++) {
-          this.blocks[x][y][z] = this.computeBlock(
+        for (let x = 0; x < this.chunkSize.x; x++) {
+          this.blocks[index++] = this.computeBlock(
             new Vector3(x, y, z).add(this.worldPosition)
           );
         }
       }
     }
+  }
+
+  getBlock(x, y, z) {
+    const blockIndex = this.getBlockIndex(x, y, z);
+    return this.blocks[blockIndex];
+  }
+
+  getBlockIndex(x, y, z) {
+    return x + y * this.chunkSize.x + z * this.chunkSize.x * this.chunkSize.y;
+  }
+
+  setBlock(value, x, y, z) {
+    const blockIndex = this.getBlockIndex(x, y, z);
+    this.blocks[blockIndex] = value;
   }
 
   computeBlock(position) {
