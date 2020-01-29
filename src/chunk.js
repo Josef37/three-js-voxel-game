@@ -7,70 +7,127 @@ import {
   BufferAttribute
 } from "three";
 
+/** Represents a cuboidal (brick-shaped) part of the world. All vertices have integer coordinates */
 export class Chunk {
+  /**
+   * Creates a new empty chunk. To fill it, call computeMesh.
+   * @param {Vector3} chunkSize size of the chunk in x,y,z dimensions
+   * @param {Vector3} worldPosition the position of the corner with the smallest coordinates (minimal x,y,z)
+   */
   constructor(chunkSize, worldPosition) {
+    /**
+     * The size of the chunk in x,y,z dimensions
+     * @type {Vector3}
+     */
     this.chunkSize = chunkSize;
+
+    /**
+     * The position of the corner with the smallest coordinates (minimal x,y,z)
+     * @type {Vector3}
+     */
     this.worldPosition = worldPosition;
-    this.blocks = null;
+
+    /**
+     * All block codes of this chunk
+     * @type {Uint8Array}
+     */
+    this.blockTypes = null;
+
+    /**
+     * The Geometry for this chunk.
+     * @type {BufferGeometry}
+     */
     this.geometry = null;
+
+    /**
+     * The Material for this chunk.
+     * @type {MeshPhongMaterial}
+     */
     this.material = new MeshPhongMaterial({
       color: "green",
       emissive: 0x003000
     });
+
+    /**
+     * The Mesh computed for this chunk.
+     * @type {Mesh}
+     */
     this.mesh = null;
   }
 
   /**
-   * @param {Vector3} worldPosition
+   * Places a block at the given world coordinates. Assumes that the position lies inside the chunk.
+   * @param {Vector3} worldPosition the global/world position to place the block
    */
   placeBlock(worldPosition) {
     this.updateBlock(worldPosition, 1);
   }
 
   /**
-   * @param {Vector3} worldPosition
+   * Removes a block at the given world coordinates. Assumes that the position lies inside the chunk.
+   * @param {Vector3} worldPosition the global/world position to place the block
    */
   removeBlock(worldPosition) {
     this.updateBlock(worldPosition, 0);
   }
 
   /**
-   * @param {Vector3} worldPosition
+   * Updates a block value in the data and recomputes the mesh immediately
+   * @param {Vector3} worldPosition the global/world position to place the block
    * @param {number} blockType the code for a block type
    */
   updateBlock(worldPosition, blockType) {
     const chunkPosition = worldPosition.clone().sub(this.worldPosition);
     const { x, y, z } = chunkPosition;
-    this.setBlock(blockType, x, y, z);
+    this.setBlockType(blockType, x, y, z);
     // Reset Mesh and Geometry to force recalculation on next render
     this.geometry = null;
     this.mesh = null;
     this.computeMesh();
   }
 
+  /**
+   * Gets the mesh. Only recomputes, when there is none.
+   * Note that **manually updating the data doesn't recompute the mesh**.
+   * @returns {Mesh} the current mesh
+   */
   getMesh() {
     if (!this.hasMesh()) this.computeMesh();
     return this.mesh;
   }
 
+  /**
+   * @returns {boolean} if there is a mesh computed
+   */
   hasMesh() {
     return !!this.mesh;
   }
 
+  /**
+   * Computes the mesh for this chunk. Sets this.mesh.
+   */
   computeMesh() {
     const geometry = this.getGeometry();
-
     this.mesh = new Mesh(geometry, this.material);
     this.mesh.position.copy(this.worldPosition);
   }
 
+  /**
+   * Gets the geometry. Only recomputes, when there is none.
+   * Note that **manually updating the data doesn't recompute the geometry**.
+   * @returns {BufferGeometry} the current geometry
+   */
   getGeometry() {
     if (!this.geometry) this.computeGeometry();
     return this.geometry;
   }
 
+  /**
+   * Computes the geometry for this chunk. Sets this.geometry.
+   * It only adds faces, when there is no neighboring block.
+   */
   computeGeometry() {
-    const blocks = this.getBlocks();
+    const blockTypes = this.getBlockTypes();
 
     const allVertices = [];
     const allNormals = [];
@@ -81,7 +138,7 @@ export class Chunk {
     for (let z = 0; z < this.chunkSize.z; z++) {
       for (let y = 0; y < this.chunkSize.y; y++) {
         for (let x = 0; x < this.chunkSize.x; x++) {
-          if (blocks[index++] === 0) continue;
+          if (blockTypes[index++] === 0) continue;
           for (const {
             normal,
             vertices,
@@ -93,7 +150,7 @@ export class Chunk {
             const { x: nX, y: nY, z: nZ } = neighbor;
             if (
               !this.isOutsideOfChunk(neighbor) &&
-              this.getBlock(nX, nY, nZ) !== 0
+              this.getBlockType(nX, nY, nZ) !== 0
             ) {
               continue;
             }
@@ -137,19 +194,26 @@ export class Chunk {
     this.geometry = geometry;
   }
 
-  getBlocks() {
-    if (!this.blocks) this.computeBlocks();
-    return this.blocks;
+  /**
+   * Gets the block. Only recomputes, when there are none.
+   * @returns {Uint8Array} the current block types data
+   */
+  getBlockTypes() {
+    if (!this.blockTypes) this.computeBlockTypes();
+    return this.blockTypes;
   }
 
-  computeBlocks() {
+  /**
+   * Overwrites the existing data and computes all block types.
+   */
+  computeBlockTypes() {
     const length = this.chunkSize.x * this.chunkSize.y * this.chunkSize.z;
-    this.blocks = new Uint8Array(length);
+    this.blockTypes = new Uint8Array(length);
     let index = 0;
     for (let z = 0; z < this.chunkSize.z; z++) {
       for (let y = 0; y < this.chunkSize.y; y++) {
         for (let x = 0; x < this.chunkSize.x; x++) {
-          this.blocks[index++] = this.computeBlock(
+          this.blockTypes[index++] = this.computeBlockType(
             new Vector3(x, y, z).add(this.worldPosition)
           );
         }
@@ -157,22 +221,13 @@ export class Chunk {
     }
   }
 
-  getBlock(x, y, z) {
-    const blockIndex = this.getBlockIndex(x, y, z);
-    return this.blocks[blockIndex];
-  }
-
-  getBlockIndex(x, y, z) {
-    return x + y * this.chunkSize.x + z * this.chunkSize.x * this.chunkSize.y;
-  }
-
-  setBlock(value, x, y, z) {
-    const blockIndex = this.getBlockIndex(x, y, z);
-    this.blocks[blockIndex] = value;
-  }
-
-  computeBlock(position) {
-    const { x, y, z } = position;
+  /**
+   * Computes the block type for the given position
+   * @param {Vector3} worldPosition the global coordinates
+   * @returns {number} the block type
+   */
+  computeBlockType(worldPosition) {
+    const { x, y, z } = worldPosition;
     const height =
       5 * Math.sin((2 * x + z) / 10) +
       5 * Math.sin(x / 10) +
@@ -180,6 +235,51 @@ export class Chunk {
     return y <= height || y === 0 ? 1 : 0;
   }
 
+  /**
+   * Gets the block type for chunk relative coordinates
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @returns {number} the block type
+   */
+  getBlockType(x, y, z) {
+    const blockIndex = this.getBlockIndex(x, y, z);
+    return this.blockTypes[blockIndex];
+  }
+
+  /**
+   * Gets the index of the block with chunk-relative coordinates x,y,z in the array this.blockTypes
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @returns {number} the index in the array
+   */
+  getBlockIndex(x, y, z) {
+    return x + y * this.chunkSize.x + z * this.chunkSize.x * this.chunkSize.y;
+  }
+
+  /**
+   * Sets the block type of the given chunk-relative position in the data array (this.blockTypes).
+   *
+   * **Note**: This recomputes neither the geometry nor the mesh!
+   * @param {number} blockType the block type to set
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   */
+  setBlockType(blockType, x, y, z) {
+    const blockIndex = this.getBlockIndex(x, y, z);
+    this.blockTypes[blockIndex] = blockType;
+  }
+
+  /**
+   * Checks if the given chunk-relative coordiantes are inside the chunk
+   * @param {Object} param0 the chunk-relative coordinates
+   * @param {number} param0.x
+   * @param {number} param0.y
+   * @param {number} param0.z
+   * @returns {boolean} if the given position lies inside this chunk
+   */
   isOutsideOfChunk({ x, y, z }) {
     return (
       x < 0 ||
@@ -192,6 +292,7 @@ export class Chunk {
   }
 }
 
+/** Data for each direction a face can be oriented. Used to construct the BufferGeometry. */
 Chunk.directions = [
   {
     normal: new Vector3(1, 0, 0),
