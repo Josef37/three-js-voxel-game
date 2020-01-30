@@ -8,13 +8,22 @@
     "three": "^0.112.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.8.3",
+    "@babel/preset-env": "^7.8.3",
+    "babel-loader": "^8.0.6",
+    "eslint": "^6.8.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10"
   },
   "scripts": {
     "copy-assets": "cp src/index.html dist/index.html && cp -r src/assets dist/",
-    "build": "webpack src/main.js --mode=production",
-    "watch": "webpack src/main.js --watch --mode=development"
+    "build": "webpack --config ./webpack.config.prod.js",
+    "watch": "webpack --config ./webpack.config.js"
   },
   "keywords": [],
   "author": "Josef Wittmann",
