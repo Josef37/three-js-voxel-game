@@ -1,12 +1,12 @@
-import { PerspectiveCamera, Object3D, DirectionalLight } from 'three'
+import { PerspectiveCamera, Object3D, DirectionalLight, Vector3 } from 'three'
 import { KeyControls } from './key-controls'
 import { MouseControls } from './mouse-controls'
+import { CollisionObject } from './collision-object'
 
 /** The Player object, which has a camera and light source attatched */
-export class Player extends Object3D {
-  constructor (domElement, { x, y, z }) {
-    super()
-    this.position.set(x, y, z)
+export class Player extends CollisionObject {
+  constructor (domElement, position) {
+    super(position)
     /** Rotates around y-axis (horizontal mouse movement) + has camera attached */
     this.rotationHelper = new Object3D()
     this.add(this.rotationHelper)
@@ -28,11 +28,16 @@ export class Player extends Object3D {
     return this.camera
   }
 
-  /** Updates the player objects position accourding to key input */
-  updatePosition () {
-    this.translateOnAxis(
-      this.keyControls.getMovementDelta().applyMatrix4(this.rotationHelper.matrix),
-      1
+  /**
+   * Updates the player objects position according to key input
+   * @param {Array<Object3D>} objects objects to collide with
+   */
+  updatePosition (timeDelta, objects) {
+    const keyVector = this.keyControls.getMovementDelta().applyMatrix4(this.rotationHelper.matrix)
+    const gravity = new Vector3(0, 1, 0).multiplyScalar(timeDelta)
+    this.move(
+      keyVector.add(gravity),
+      objects
     )
   }
 

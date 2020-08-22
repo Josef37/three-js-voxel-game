@@ -15,6 +15,7 @@ export class GameController {
   constructor (canvas) {
     this.world = new World()
     this.player = new Player(canvas, new Vector3(0, 20, 50))
+    this.then = 0
 
     /**
      * Keeps track of all currently rendered meshes
@@ -62,8 +63,10 @@ export class GameController {
    * Updates all elements and draws them.
    * Calls requestAnimationFrame in the end.
    */
-  animate () {
-    this.player.updatePosition()
+  animate (now) {
+    const timeDelta = (this.then - now) / 1000
+    this.then = now
+    this.player.updatePosition(timeDelta, this.currentMeshes)
     this.player.updateRotation()
     this.updateMeshes()
     this.view.draw(this.player.getCamera())
@@ -73,7 +76,7 @@ export class GameController {
       ? `${pos.x}, ${pos.y}, ${pos.z}`
       : 'Nö, einfach nö!'
 
-    requestAnimationFrame(() => this.animate())
+    requestAnimationFrame(this.animate.bind(this))
   }
 
   /**
